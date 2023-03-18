@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp-emu.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\array.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Dac.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\EnvelopeGenerator.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\ExternalFilter.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Filter.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Filter6581.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Filter8580.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\FilterModelConfig.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\FilterModelConfig6581.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\FilterModelConfig8580.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Integrator6581.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Integrator8580.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\OpAmp.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Potentiometer.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\resample\Resampler.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\resample\SincResampler.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\resample\TwoPassSincResampler.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\resample\ZeroOrderResampler.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\SID.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\siddefs-fp.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Spline.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\Voice.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\WaveformCalculator.h" />
+    <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\WaveformGenerator.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\Bank.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\ColorRAMBank.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\DisconnectedBusBank.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\ExtraSidBank.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\IOBank.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\NullSid.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\pla.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\SidBank.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\SystemRAMBank.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\SystemROMBanks.h" />
+    <ClInclude Include="libsidplayfp\src\c64\Banks\ZeroRAMBank.h" />
+    <ClInclude Include="libsidplayfp\src\c64\c64.h" />
+    <ClInclude Include="libsidplayfp\src\c64\c64cia.h" />
+    <ClInclude Include="libsidplayfp\src\c64\c64cpu.h" />
+    <ClInclude Include="libsidplayfp\src\c64\c64env.h" />
+    <ClInclude Include="libsidplayfp\src\c64\c64sid.h" />
+    <ClInclude Include="libsidplayfp\src\c64\c64vic.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CIA\interrupt.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CIA\mos652x.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CIA\SerialPort.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CIA\timer.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CIA\tod.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CPU\flags.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CPU\mos6510.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CPU\mos6510debug.h" />
+    <ClInclude Include="libsidplayfp\src\c64\CPU\opcodes.h" />
+    <ClInclude Include="libsidplayfp\src\c64\mmu.h" />
+    <ClInclude Include="libsidplayfp\src\c64\VIC_II\lightpen.h" />
+    <ClInclude Include="libsidplayfp\src\c64\VIC_II\mos656x.h" />
+    <ClInclude Include="libsidplayfp\src\c64\VIC_II\sprites.h" />
+    <ClInclude Include="libsidplayfp\src\config.h" />
+    <ClInclude Include="libsidplayfp\src\Event.h" />
+    <ClInclude Include="libsidplayfp\src\EventCallback.h" />
+    <ClInclude Include="libsidplayfp\src\EventScheduler.h" />
+    <ClInclude Include="libsidplayfp\src\mixer.h" />
+    <ClInclude Include="libsidplayfp\src\player.h" />
+    <ClInclude Include="libsidplayfp\src\psiddrv.h" />
+    <ClInclude Include="libsidplayfp\src\reloc65.h" />
+    <ClInclude Include="libsidplayfp\src\romCheck.h" />
+    <ClInclude Include="libsidplayfp\src\sidcxx11.h" />
+    <ClInclude Include="libsidplayfp\src\sidcxx14.h" />
+    <ClInclude Include="libsidplayfp\src\sidemu.h" />
+    <ClInclude Include="libsidplayfp\src\sidendian.h" />
+    <ClInclude Include="libsidplayfp\src\SidInfoImpl.h" />
+    <ClInclude Include="libsidplayfp\src\sidmd5.h" />
+    <ClInclude Include="libsidplayfp\src\sidmemory.h" />
+    <ClInclude Include="libsidplayfp\src\sidplayfp\sidbuilder.h" />
+    <ClInclude Include="libsidplayfp\src\sidplayfp\SidConfig.h" />
+    <ClInclude Include="libsidplayfp\src\sidplayfp\siddefs.h" />
+    <ClInclude Include="libsidplayfp\src\sidplayfp\SidInfo.h" />
+    <ClInclude Include="libsidplayfp\src\sidplayfp\sidplayfp.h" />
+    <ClInclude Include="libsidplayfp\src\sidplayfp\SidTune.h" />
+    <ClInclude Include="libsidplayfp\src\sidplayfp\SidTuneInfo.h" />
+    <ClInclude Include="libsidplayfp\src\sidplayfp\sidversion.h" />
+    <ClInclude Include="libsidplayfp\src\sidrandom.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\MUS.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\p00.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\prg.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\PSID.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\SidTuneBase.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\SidTuneCfg.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\SidTuneInfoImpl.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\SidTuneTools.h" />
+    <ClInclude Include="libsidplayfp\src\sidtune\SmartPtr.h" />
+    <ClInclude Include="libsidplayfp\src\stringutils.h" />
+    <ClInclude Include="libsidplayfp\src\utils\iMd5.h" />
+    <ClInclude Include="libsidplayfp\src\utils\iniParser.h" />
+    <ClInclude Include="libsidplayfp\src\utils\md5Factory.h" />
+    <ClInclude Include="libsidplayfp\src\utils\md5Gcrypt.h" />
+    <ClInclude Include="libsidplayfp\src\utils\md5Internal.h" />
+    <ClInclude Include="libsidplayfp\src\utils\MD5\MD5.h" />
+    <ClInclude Include="libsidplayfp\src\utils\MD5\MD5_Defs.h" />
+    <ClInclude Include="libsidplayfp\src\utils\SidDatabase.h" />
+    <ClInclude Include="libsidplayfp\src\utils\STILview\stil.h" />
+    <ClInclude Include="libsidplayfp\src\utils\STILview\stildefs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libsidplayfp\src\poweron.bin" />
+    <None Include="libsidplayfp\src\psiddrv.bin" />
+    <None Include="libsidplayfp\src\sidtune\sidplayer1.bin" />
+    <None Include="libsidplayfp\src\sidtune\sidplayer2.bin" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp-builder.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp-emu.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\Dac.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\EnvelopeGenerator.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\ExternalFilter.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\Filter.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\Filter6581.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\Filter8580.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\FilterModelConfig.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\FilterModelConfig6581.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\FilterModelConfig8580.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\Integrator6581.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\Integrator8580.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\OpAmp.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\resample\SincResampler.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\resample\test.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\SID.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\Spline.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\WaveformCalculator.cpp" />
+    <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\WaveformGenerator.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\c64.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\CIA\interrupt.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\CIA\mos652x.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\CIA\SerialPort.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\CIA\timer.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\CIA\tod.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\CPU\mos6510.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\CPU\mos6510debug.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\mmu.cpp" />
+    <ClCompile Include="libsidplayfp\src\c64\VIC_II\mos656x.cpp" />
+    <ClCompile Include="libsidplayfp\src\EventScheduler.cpp" />
+    <ClCompile Include="libsidplayfp\src\mixer.cpp" />
+    <ClCompile Include="libsidplayfp\src\player.cpp" />
+    <ClCompile Include="libsidplayfp\src\psiddrv.cpp" />
+    <ClCompile Include="libsidplayfp\src\reloc65.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidemu.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidplayfp\sidbuilder.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidplayfp\SidConfig.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidplayfp\SidInfo.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidplayfp\sidplayfp.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidplayfp\SidTune.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidplayfp\SidTuneInfo.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidtune\MUS.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidtune\p00.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidtune\prg.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidtune\PSID.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidtune\SidTuneBase.cpp" />
+    <ClCompile Include="libsidplayfp\src\sidtune\SidTuneTools.cpp" />
+    <ClCompile Include="libsidplayfp\src\utils\iniParser.cpp" />
+    <ClCompile Include="libsidplayfp\src\utils\md5Factory.cpp" />
+    <ClCompile Include="libsidplayfp\src\utils\MD5\MD5.cpp" />
+    <ClCompile Include="libsidplayfp\src\utils\SidDatabase.cpp" />
+    <ClCompile Include="libsidplayfp\src\utils\STILview\stil.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{D042FE34-8355-42A1-B7ED-F334565D5CAD}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <ProjectName>libsidplayfp</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>%(AdditionalIncludeDirectories);$(SolutionDir);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>./libsidplayfp/src/builders/residfp-builder/residfp;./libsidplayfp/src/builders/residfp-builder;./libsidplayfp/src/builders;./libsidplayfp/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalUsingDirectories>$(SolutionDir)</AdditionalUsingDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MinSpace</Optimization>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalOptions>
+      </AdditionalOptions>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>./libsidplayfp/src/builders/residfp-builder/residfp;./libsidplayfp/src/builders/residfp-builder;./libsidplayfp/src/builders;./libsidplayfp/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
