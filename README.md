@@ -27,6 +27,7 @@ v4.0
 - Emulation config options now apply on the next loaded sid instead of restart
 - Skip to Default Subsong ...and only play the Default options added
 - Seeking is no longer disabled by default
+- MUS and STR files are now supported so enjoy that Compute's Gazette Sid Collection
 
 
 ### Big Thanks To
