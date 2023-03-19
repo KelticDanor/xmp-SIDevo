@@ -532,7 +532,7 @@ static void WINAPI SIDevo_About(HWND win)
 }
 static BOOL WINAPI SIDevo_CheckFile(const char* filename, XMPFILE file)
 {
-	//PSID, RSID, MUS, P00, PRG, DAT, STR
+	// +PSID, +RSID, +MUS, -P00, -PRG, -DAT, +STR
 	std::string musExtension = ".mus";
 	std::string strExtension = ".str";
 	if (std::string(filename).length() >= musExtension.length()) {
@@ -552,7 +552,9 @@ static DWORD WINAPI SIDevo_GetFileInfo(const char* filename, XMPFILE file, float
 	const SidTuneInfo* lu_songinfo;
 	int lu_songcount;
 
-	lu_song = new SidTune(filename);
+	uint_least8_t* c64buf = new uint_least8_t[xmpffile->GetSize(file)];
+	xmpffile->Read(file, c64buf, xmpffile->GetSize(file));
+	lu_song = new SidTune(c64buf, xmpffile->GetSize(file));
 	if (!lu_song->getStatus()) {
 		delete lu_song;
 		return 0;
@@ -681,7 +683,9 @@ static DWORD WINAPI SIDevo_Open(const char* filename, XMPFILE file)
 {
 	SIDevo_Init();
 	if (sidEngine.b_loaded) {
-		sidEngine.p_song = new SidTune(filename);
+		uint_least8_t* c64buf = new uint_least8_t[xmpffile->GetSize(file)];
+		xmpffile->Read(file, c64buf, xmpffile->GetSize(file));
+		sidEngine.p_song = new SidTune(c64buf, xmpffile->GetSize(file));
 		if (!sidEngine.p_song->getStatus()) {
 			return 0;
 		} else {
