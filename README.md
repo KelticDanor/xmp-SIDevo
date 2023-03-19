@@ -42,5 +42,5 @@ v4.0
 - kode54 (Christopher Snowhill) ~~~ Code references in foo_sid
 - z80maniac (Alexey Parfenov) ~~~ Code references in xmp-zxtune
 - zbych-r / in_sidplay2 ~~~ Code references in in_sidplay2
-- Malade / xmp-sidex v2 ~~~ Code references in xmp-sidex v2
+- Malade (William Cronin) / xmp-sidex v2 ~~~ Code references in xmp-sidex v2
 
