@@ -28,6 +28,9 @@ v4.0
 - Skip to Default Subsong ...and only play the Default options added
 - Seeking is no longer disabled by default
 - MUS and STR files are now supported so enjoy that Compute's Gazette Sid Collection
+- Tunes are now loaded from memory instead of the file system which fixes...
+	- Loading of foreign files with incompatible characters
+	- Loading of sids directly from web urls
 
 
 ### Big Thanks To
