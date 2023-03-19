@@ -357,6 +357,7 @@ static void fetchSIDId(XMPFILE file) {
 			c64player.replace(c64player.find("_"), 1, " ");
 
 		memcpy(sidEngine.p_sididplayer, c64player.c_str(), 25);
+		delete[] c64buf;
 	}
 }
 
@@ -526,7 +527,7 @@ static void WINAPI SIDevo_Init()
 static void WINAPI SIDevo_About(HWND win)
 {
 	MessageBoxA(win,
-		"XMPlay SIDevo plugin (v4.0)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to load/play sid files with libsidplayfp-2.4.2.\n\nFREE FOR USE WITH XMPLAY",
+		"XMPlay SIDevo plugin (v4.0)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid/mus and str c64 tunes with libsidplayfp-2.4.2.\n\nFREE FOR USE WITH XMPLAY",
 		"About...",
 		MB_ICONINFORMATION);
 }
@@ -555,6 +556,8 @@ static DWORD WINAPI SIDevo_GetFileInfo(const char* filename, XMPFILE file, float
 	uint_least8_t* c64buf = new uint_least8_t[xmpffile->GetSize(file)];
 	xmpffile->Read(file, c64buf, xmpffile->GetSize(file));
 	lu_song = new SidTune(c64buf, xmpffile->GetSize(file));
+	delete[] c64buf;
+
 	if (!lu_song->getStatus()) {
 		delete lu_song;
 		return 0;
@@ -686,6 +689,8 @@ static DWORD WINAPI SIDevo_Open(const char* filename, XMPFILE file)
 		uint_least8_t* c64buf = new uint_least8_t[xmpffile->GetSize(file)];
 		xmpffile->Read(file, c64buf, xmpffile->GetSize(file));
 		sidEngine.p_song = new SidTune(c64buf, xmpffile->GetSize(file));
+		delete[] c64buf;
+
 		if (!sidEngine.p_song->getStatus()) {
 			return 0;
 		} else {
