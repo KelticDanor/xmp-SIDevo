@@ -12,8 +12,7 @@ This is a partial rewrite and update of my old SIDex v1.0~ plugin, it has now be
 
 ### SIDId Support
 xmp-sidevo does not keep a copy of the SIDId database internally but a sidid.cfg file is
-included in the archive. Copy the sidid.cfg folder to wherever you point the HVSC
-DOCUMENTS/ path to or you can just leave it with the plugin should work as well.
+included in the archive. The sidid.cfg must be in the same location as the plugin.
 
 You can also download the latest sidid.cfg file from the SIDId GitHub here: https://github.com/cadaver/sidid
 
