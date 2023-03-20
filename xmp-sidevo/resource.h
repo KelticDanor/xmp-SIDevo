@@ -1293,7 +1293,6 @@
 #define psh8                            0x0407
 #define IDC_CHECK_DEFAULTSKIP           1031
 #define psh9                            0x0408
-#define IDC_CHECK_DETECTPLAYER3         1032
 #define IDC_CHECK_DEFAULTONLY           1032
 #define psh10                           0x0409
 #define psh11                           0x040a
@@ -1382,7 +1381,9 @@
 #define IDC_TITLE_8580LEVEL             1101
 #define stc15                           0x044e
 #define stc16                           0x044f
+#define IDC_TITLE_8580LEVEL2            1103
 #define stc17                           0x0450
+#define IDC_TITLE_8580LEVEL3            1104
 #define stc18                           0x0451
 #define stc19                           0x0452
 #define stc20                           0x0453
@@ -1455,6 +1456,8 @@
 #define scr7                            0x0496
 #define scr8                            0x0497
 #define ctl1                            0x04A0
+#define IDC_BUTTON_FOLDER               1200
+#define IDC_BUTTON_TEST                 1201
 #define ctlLast                         0x04ff
 #define _WIN32_WINNT_WIN2K              0x0500
 #define _WIN32_IE_IE50                  0x0500

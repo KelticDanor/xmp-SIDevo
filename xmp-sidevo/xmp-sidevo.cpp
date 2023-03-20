@@ -318,27 +318,61 @@ static inline std::string& trim(std::string& s) {
 		std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
 	return s;
 }
+// generic tester
+static std::string pathTest(char tempPath[250]) {
+	std::string relpathName, testpathName, pathState;
+
+	if ((tempPath[0]) == '.') {
+		TCHAR exepathName[FILENAME_MAX];
+		GetModuleFileName(nullptr, exepathName, FILENAME_MAX);
+		std::string::size_type slashPos = std::string(exepathName).find_last_of("\\/");
+		relpathName = std::string(exepathName).substr(0, slashPos);
+		relpathName.append("\\");
+		relpathName.append(tempPath);
+	} else {
+		relpathName = tempPath;
+	}
+
+	// test songlengths
+	testpathName = relpathName;
+	testpathName.append("Songlengths.md5");
+	if (FILE* file = fopen(testpathName.c_str(), "r")) {
+		fclose(file);
+		pathState.append("Songlengths");
+
+		// test stil
+		testpathName = relpathName;
+		testpathName.append("STIL.txt");
+		if (FILE* file = fopen(testpathName.c_str(), "r")) {
+			fclose(file);
+			pathState.append(" && STIL Found");
+		} else {
+			pathState.append(" Found, STIL Not Found");
+		}
+	} else {
+		pathState.append("HVSC Path Invalid");
+	}
+
+	return pathState;
+}
 // functions to load and fetch the SIDId
 static void loadSIDId() {
-	if (sidSetting.c_detectplayer && !sidEngine.d_loadedsidid && strlen(sidSetting.c_dbpath) > 10) {
-		std::string relpathName;
-		if ((sidSetting.c_dbpath[0]) == '.') {
-			TCHAR exepathName[FILENAME_MAX];
-			GetModuleFileName(nullptr, exepathName, FILENAME_MAX);
-			std::string::size_type slashPos = std::string(exepathName).find_last_of("\\/");
-			relpathName = std::string(exepathName).substr(0, slashPos);
-			relpathName.append("\\");
-			relpathName.append(sidSetting.c_dbpath);
-		} else {
-			relpathName = sidSetting.c_dbpath;
+	if (sidSetting.c_detectplayer && !sidEngine.d_loadedsidid) {
+		char pluginPath[MAX_PATH];
+		std::string configPath;
+		HMODULE pluginHandle = NULL;
+		if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&loadSIDId, &pluginHandle) != 0) {
+			if (GetModuleFileName(pluginHandle, pluginPath, sizeof(pluginPath)) != 0) {
+				std::string::size_type slashPos = std::string(pluginPath).find_last_of("\\/");
+				configPath = std::string(pluginPath).substr(0, slashPos + 1);
+				configPath.append("sidid.cfg");
+			}
 		}
-
-		relpathName.append("sidid.cfg");
-		if (FILE* file = fopen(relpathName.c_str(), "r")) {
+		if (FILE* file = fopen(configPath.c_str(), "r")) {
 			fclose(file);
-			sidEngine.d_loadedsidid = sidEngine.d_sididbase.readConfigFile(relpathName);
+			sidEngine.d_loadedsidid = sidEngine.d_sididbase.readConfigFile(configPath);
 		} else {
-			MessageBoxA(0, "Unable to find sidid.cfg be sure to copying it to the DOCUMENTS/ folder.", "sidid.cfg Path Error", MB_OK);
+			MessageBoxA(0, "Unable to find sidid.cfg in the plugin folder, disable detect music player if you would prefer not to use SIDid.", "sidid.cfg Not Found", MB_OK);
 		}
 	}
 }
@@ -1028,6 +1062,13 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 
 			// apply configuraton
 			saveConfig();
+			EndDialog(hWnd, 0);
+			break;
+		case IDC_BUTTON_TEST:
+			char tempPath[250];
+			MESS(IDC_EDIT_DBPATH, WM_GETTEXT, 250, tempPath);
+			MESS(IDC_LABEL_STATUS, WM_SETTEXT, 0, pathTest(tempPath).c_str());
+			break;
 		case IDCANCEL:
 			EndDialog(hWnd, 0);
 			break;
@@ -1070,6 +1111,7 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		SetDlgItemInt(hWnd, IDC_EDIT_MINLENGTH, sidSetting.c_minlength, false);
 		SetDlgItemInt(hWnd, IDC_EDIT_POWERDELAY, sidSetting.c_powerdelay, false);
 		SetDlgItemTextA(hWnd, IDC_EDIT_DBPATH, sidSetting.c_dbpath);
+		MESS(IDC_LABEL_STATUS, WM_SETTEXT, 0, pathTest(sidSetting.c_dbpath).c_str());
 		//
 		return TRUE;
 	}
