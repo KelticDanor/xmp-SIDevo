@@ -34,6 +34,7 @@ static XMPFUNC_REGISTRY* xmpfreg;
 #include <iterator>
 #include <functional>
 #include <cctype>
+#include <shlobj_core.h>
 
 #ifndef _WIN32
 #include <libgen.h>
@@ -67,11 +68,12 @@ typedef struct
 	char p_sidmodel[10];
 	char p_clockspeed[10];
 	bool b_loaded;
-    bool b_reloadcfg = false;
+	bool b_reloadcfg = false;
 
 	int o_sidchips;
 	char o_sidmodel[10];
 	char o_clockspeed[10];
+	const char* o_sidfilename;
 
 	float fadein;
 	float fadeout;
@@ -318,19 +320,42 @@ static inline std::string& trim(std::string& s) {
 		std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
 	return s;
 }
-// generic tester
+// test and folder functions for settings dialog
+static std::string WINAPI selectFolder(HWND win)
+{
+	char path[MAX_PATH + 1];
+	BROWSEINFO bi;
+
+	bi.hwndOwner = win;
+	bi.pidlRoot = NULL;
+	bi.pszDisplayName = path;	// This is just for display: not useful
+	bi.lpszTitle = "Choose C64Music/DOCUMENTS Directory";
+	bi.ulFlags = BIF_RETURNONLYFSDIRS;
+	bi.lpfn = NULL;
+	bi.lParam = 0;
+	LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+	if (pidl != NULL && SHGetPathFromIDList(pidl, path))
+	{
+		return path;
+	} else {
+		return "";
+	}
+}
 static std::string pathTest(char tempPath[250]) {
 	std::string relpathName, testpathName, pathState;
 
+	// get dll path
 	if ((tempPath[0]) == '.') {
 		TCHAR exepathName[FILENAME_MAX];
 		GetModuleFileName(nullptr, exepathName, FILENAME_MAX);
 		std::string::size_type slashPos = std::string(exepathName).find_last_of("\\/");
 		relpathName = std::string(exepathName).substr(0, slashPos);
-		relpathName.append("\\");
+		relpathName.append("/");
 		relpathName.append(tempPath);
+		relpathName.append("/");
 	} else {
 		relpathName = tempPath;
+		relpathName.append("/");
 	}
 
 	// test songlengths
@@ -355,6 +380,7 @@ static std::string pathTest(char tempPath[250]) {
 
 	return pathState;
 }
+
 // functions to load and fetch the SIDId
 static void loadSIDId() {
 	if (sidSetting.c_detectplayer && !sidEngine.d_loadedsidid) {
@@ -394,7 +420,6 @@ static void fetchSIDId(XMPFILE file) {
 		delete[] c64buf;
 	}
 }
-
 // functions to load and fetch the songlengthdbase
 static void loadSonglength() {
 	if (!sidSetting.c_forcelength && !sidEngine.d_loadeddbase && strlen(sidSetting.c_dbpath) > 10) {
@@ -404,10 +429,12 @@ static void loadSonglength() {
 			GetModuleFileName(nullptr, exepathName, FILENAME_MAX);
 			std::string::size_type slashPos = std::string(exepathName).find_last_of("\\/");
 			relpathName = std::string(exepathName).substr(0, slashPos);
-			relpathName.append("\\");
+			relpathName.append("/");
 			relpathName.append(sidSetting.c_dbpath);
+			relpathName.append("/");
 		} else {
 			relpathName = sidSetting.c_dbpath;
+			relpathName.append("/");
 		}
 
 		relpathName.append("Songlengths.md5");
@@ -471,7 +498,7 @@ static void loadSTILbase() {
 			GetModuleFileName(nullptr, exepathName, FILENAME_MAX);
 			std::string::size_type slashPos = std::string(exepathName).find_last_of("\\/");
 			relpathName = std::string(exepathName).substr(0, slashPos);
-			relpathName.append("\\");
+			relpathName.append("/");
 			relpathName.append(sidSetting.c_dbpath);
 
 			char abspathName[_MAX_PATH];
@@ -480,6 +507,7 @@ static void loadSTILbase() {
 		} else {
 			relpathName = sidSetting.c_dbpath;
 		}
+
 		relpathName.replace((relpathName.length() - 10), 10, "");
 		sidEngine.d_loadedstil = sidEngine.d_stilbase.setBaseDir(relpathName.c_str());
 		if (!sidEngine.d_loadedstil) {
@@ -651,13 +679,13 @@ static void WINAPI SIDevo_GetGeneralInfo(char* buf)
 		buf += sprintf(buf, "%s\t#%d", "Sid Info", sidEngine.o_sidchips);
 		if (strlen(sidEngine.o_sidmodel) > 0) {
 			buf += sprintf(buf, " - %s", sidEngine.o_sidmodel);
-			if (strlen(sidEngine.o_sidmodel) > 0 && strcmp(sidEngine.o_sidmodel,sidEngine.p_sidmodel) != 0) {
+			if (strlen(sidEngine.o_sidmodel) > 0 && strcmp(sidEngine.o_sidmodel, sidEngine.p_sidmodel) != 0) {
 				buf += sprintf(buf, " (%s)", sidEngine.p_sidmodel);
 			}
 		}
 		if (strlen(sidEngine.o_clockspeed) > 0) {
 			buf += sprintf(buf, " - %s", sidEngine.o_clockspeed);
-			if (strlen(sidEngine.o_clockspeed) > 0 && strcmp(sidEngine.o_clockspeed,sidEngine.p_clockspeed) != 0) {
+			if (strlen(sidEngine.o_clockspeed) > 0 && strcmp(sidEngine.o_clockspeed, sidEngine.p_clockspeed) != 0) {
 				buf += sprintf(buf, " (%s)", sidEngine.p_clockspeed);
 			}
 		}
@@ -689,12 +717,9 @@ static void WINAPI SIDevo_GetMessage(char* buf)
 
 		// txt stil lookup
 		if (sidEngine.d_loadedstil) {
-			std::string searchPath;
-			searchPath.append(sidEngine.p_songinfo->path());
-			searchPath.append(sidEngine.p_songinfo->dataFileName());
-			stilComment = sidEngine.d_stilbase.getAbsGlobalComment(searchPath.c_str());
-			stilEntry = sidEngine.d_stilbase.getAbsEntry(searchPath.c_str(), 0, STIL::all);
-			stilBug = sidEngine.d_stilbase.getAbsBug(searchPath.c_str(), sidEngine.p_subsong);
+			stilComment = sidEngine.d_stilbase.getAbsGlobalComment(sidEngine.o_sidfilename);
+			stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_sidfilename, 0, STIL::all);
+			stilBug = sidEngine.d_stilbase.getAbsBug(sidEngine.o_sidfilename, sidEngine.p_subsong);
 		}
 
 		if (stilComment != NULL) {
@@ -720,6 +745,7 @@ static DWORD WINAPI SIDevo_Open(const char* filename, XMPFILE file)
 {
 	SIDevo_Init();
 	if (sidEngine.b_loaded) {
+		sidEngine.o_sidfilename = filename;
 		uint_least8_t* c64buf = new uint_least8_t[xmpffile->GetSize(file)];
 		xmpffile->Read(file, c64buf, xmpffile->GetSize(file));
 		sidEngine.p_song = new SidTune(c64buf, xmpffile->GetSize(file));
@@ -1063,6 +1089,9 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			// apply configuraton
 			saveConfig();
 			EndDialog(hWnd, 0);
+			break;
+		case IDC_BUTTON_FOLDER:
+			SetDlgItemTextA(hWnd, IDC_EDIT_DBPATH, selectFolder(hWnd).c_str());
 			break;
 		case IDC_BUTTON_TEST:
 			char tempPath[250];

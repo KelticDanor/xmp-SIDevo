@@ -20,9 +20,9 @@ GROUPBOX        "HVSC DOCUMENTS Path (Used for Songlengths.md5 && STIL)", IDC_ST
 LTEXT           "**Power delay:", IDC_STATIC, 20, 55, 71, 8
 EDITTEXT        IDC_EDIT_POWERDELAY, 97, 53, 56, 12, ES_CENTER | ES_AUTOHSCROLL
 CONTROL         "Random", IDC_CHECK_RANDOMDELAY, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 157, 55, 40, 10
-EDITTEXT        IDC_EDIT_DBPATH, 97, 224, 253, 12, ES_AUTOHSCROLL
+EDITTEXT        IDC_EDIT_DBPATH, 97, 224, 229, 12, ES_AUTOHSCROLL
 LTEXT           "DOCUMENTS Path:", IDC_STATIC, 20, 226, 71, 8
-LTEXT           "Path must be ../DOCUMENTS/ or C:\\DOCUMENTS\\                ** Changes apply on next song.", IDC_STATIC, 15, 271, 304, 8
+LTEXT           "Path must be ../DOCUMENTS or C:\\DOCUMENTS                ** Changes apply on next song.", IDC_STATIC, 15, 271, 304, 8
 LTEXT           "6581 filter strength:", IDC_TITLE_6581LEVEL, 229, 37, 71, 8
 CONTROL         "Enable SID filters", IDC_CHECK_ENABLEFILTER, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 229, 18, 100, 10
 LTEXT           "8580 filter strength:", IDC_TITLE_8580LEVEL, 229, 55, 71, 8
@@ -56,4 +56,5 @@ CONTROL         "...and only play the Default", IDC_CHECK_DEFAULTONLY,
 PUSHBUTTON      "Test HVSC Path", IDC_BUTTON_TEST, 356, 223, 77, 14
 LTEXT           "Status:", IDC_STATIC, 20, 243, 71, 8
 LTEXT           "...", IDC_LABEL_STATUS, 98, 243, 283, 8
+PUSHBUTTON      "...", IDC_BUTTON_FOLDER, 331, 223, 20, 14
 END
