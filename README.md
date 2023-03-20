@@ -30,6 +30,8 @@ v4.0
 - Tunes are now loaded from memory instead of the file system which fixes...
 	- Loading of foreign files with incompatible characters
 	- Loading of sids directly from web urls
+- sidid.cfg is now loaded from the plugin directly instead of HVSC DOCUMENTS/
+- HVSC Documents path purpose made clearer and a test path button added
 
 
 ### Big Thanks To
