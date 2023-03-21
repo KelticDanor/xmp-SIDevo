@@ -34,7 +34,7 @@ static XMPFUNC_REGISTRY* xmpfreg;
 #include <iterator>
 #include <functional>
 #include <cctype>
-#include <shlobj_core.h>
+#include <shlobj.h>
 
 #ifndef _WIN32
 #include <libgen.h>
@@ -73,7 +73,6 @@ typedef struct
 	int o_sidchips;
 	char o_sidmodel[10];
 	char o_clockspeed[10];
-	const char* o_sidfilename;
 
 	float fadein;
 	float fadeout;
@@ -110,6 +109,14 @@ typedef struct
 	bool c_defaultonly;
 } SIDsetting;
 static SIDsetting sidSetting;
+
+typedef struct
+{
+	uint_least8_t* f_buffer;
+	const char* f_name;
+	int f_size;
+} SIDfile;
+static SIDfile sidFile;
 
 // pretty up the format
 static const char* simpleFormat(const char* songFormat) {
@@ -321,40 +328,52 @@ static inline std::string& trim(std::string& s) {
 	return s;
 }
 // test and folder functions for settings dialog
-static std::string WINAPI selectFolder(HWND win)
-{
-	char path[MAX_PATH + 1];
-	BROWSEINFO bi;
+int CALLBACK callbackFolder(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData) {
+	LPITEMIDLIST pidlNavigate;
+	switch (uMsg) {
+		case BFFM_INITIALIZED: {
+			pidlNavigate = (LPITEMIDLIST)lpData;
+			if (pidlNavigate != NULL)
+				SendMessage(hwnd, BFFM_SETSELECTION, (WPARAM)FALSE, (LPARAM)pidlNavigate);
+		}
+		break;
+	}
+	return 0;
+}
+static std::string WINAPI selectFolder(HWND hWnd) {
+	char folderPath[MAX_PATH + 1]{};
+	BROWSEINFO bSet{};
+	LPITEMIDLIST pidlStart, pidlSelected;
+	pidlStart = ILCreateFromPathA(sidSetting.c_dbpath);
 
-	bi.hwndOwner = win;
-	bi.pidlRoot = NULL;
-	bi.pszDisplayName = path;	// This is just for display: not useful
-	bi.lpszTitle = "Choose C64Music/DOCUMENTS Directory";
-	bi.ulFlags = BIF_RETURNONLYFSDIRS;
-	bi.lpfn = NULL;
-	bi.lParam = 0;
-	LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
-	if (pidl != NULL && SHGetPathFromIDList(pidl, path))
+	bSet.hwndOwner = hWnd;
+	bSet.pszDisplayName = folderPath;
+	bSet.lpszTitle = "Choose C64Music/DOCUMENTS Directory";
+	bSet.ulFlags = BIF_NEWDIALOGSTYLE | BIF_RETURNONLYFSDIRS;
+	bSet.lpfn = callbackFolder;
+	bSet.lParam = (LPARAM)pidlStart;
+	pidlSelected = SHBrowseForFolder(&bSet);
+	if (pidlSelected != NULL && SHGetPathFromIDList(pidlSelected, folderPath))
 	{
-		return path;
+		return folderPath;
 	} else {
 		return "";
 	}
 }
-static std::string pathTest(char tempPath[250]) {
+static std::string pathTest() {
 	std::string relpathName, testpathName, pathState;
 
 	// get dll path
-	if ((tempPath[0]) == '.') {
+	if ((sidSetting.c_dbpath[0]) == '.') {
 		TCHAR exepathName[FILENAME_MAX];
 		GetModuleFileName(nullptr, exepathName, FILENAME_MAX);
 		std::string::size_type slashPos = std::string(exepathName).find_last_of("\\/");
 		relpathName = std::string(exepathName).substr(0, slashPos);
 		relpathName.append("/");
-		relpathName.append(tempPath);
+		relpathName.append(sidSetting.c_dbpath);
 		relpathName.append("/");
 	} else {
-		relpathName = tempPath;
+		relpathName = sidSetting.c_dbpath;
 		relpathName.append("/");
 	}
 
@@ -406,18 +425,12 @@ static void fetchSIDId(XMPFILE file) {
 	if (sidEngine.d_loadedsidid) {
 		// adapted sidid code, could be more efficient
 		std::string c64player;
-		uint_least8_t* c64buf = new uint_least8_t[xmpffile->GetSize(file)];
-		// currently getting everything but we really want only the tune try to modify in future
-		// sidEngine.p_songinfo->loadAddr();
-		// sidEngine.p_songinfo->dataFileLen();
-		xmpffile->Read(file, c64buf, xmpffile->GetSize(file));
-		std::vector<uint_least8_t> buffer(&c64buf[0], &c64buf[xmpffile->GetSize(file)]);
+		std::vector<uint_least8_t> buffer(&sidFile.f_buffer[0], &sidFile.f_buffer[sidFile.f_size]);
 		c64player = sidEngine.d_sididbase.identify(buffer);
 		while (c64player.find("_") != -1)
 			c64player.replace(c64player.find("_"), 1, " ");
 
 		memcpy(sidEngine.p_sididplayer, c64player.c_str(), 25);
-		delete[] c64buf;
 	}
 }
 // functions to load and fetch the songlengthdbase
@@ -589,7 +602,7 @@ static void WINAPI SIDevo_Init()
 static void WINAPI SIDevo_About(HWND win)
 {
 	MessageBoxA(win,
-		"XMPlay SIDevo plugin (v4.0)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid/mus and str c64 tunes with libsidplayfp-2.4.2.\n\nFREE FOR USE WITH XMPLAY",
+		"XMPlay SIDevo plugin (v4.0)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid,mus and str tunes from the Commodore 64 using the libsidplayfp-2.4.2 library.\n\nAdditional Credits:\nCopyright (c) 2000 - 2001 Simon White\nCopyright (c) 2007 - 2010 Antti Lankila\nCopyright (c) 2010 - 2021 Leandro Nini\n\nFREE FOR USE WITH XMPLAY",
 		"About...",
 		MB_ICONINFORMATION);
 }
@@ -615,10 +628,11 @@ static DWORD WINAPI SIDevo_GetFileInfo(const char* filename, XMPFILE file, float
 	const SidTuneInfo* lu_songinfo;
 	int lu_songcount;
 
-	uint_least8_t* c64buf = new uint_least8_t[xmpffile->GetSize(file)];
-	xmpffile->Read(file, c64buf, xmpffile->GetSize(file));
-	lu_song = new SidTune(c64buf, xmpffile->GetSize(file));
-	delete[] c64buf;
+	int c64size = xmpffile->GetSize(file);
+	uint_least8_t* c64buff = new uint_least8_t[c64size];
+	xmpffile->Read(file, c64buff, c64size);
+	lu_song = new SidTune(c64buff, c64size);
+	delete[] c64buff;
 
 	if (!lu_song->getStatus()) {
 		delete lu_song;
@@ -717,9 +731,9 @@ static void WINAPI SIDevo_GetMessage(char* buf)
 
 		// txt stil lookup
 		if (sidEngine.d_loadedstil) {
-			stilComment = sidEngine.d_stilbase.getAbsGlobalComment(sidEngine.o_sidfilename);
-			stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_sidfilename, 0, STIL::all);
-			stilBug = sidEngine.d_stilbase.getAbsBug(sidEngine.o_sidfilename, sidEngine.p_subsong);
+			stilComment = sidEngine.d_stilbase.getAbsGlobalComment(sidFile.f_name);
+			stilEntry = sidEngine.d_stilbase.getAbsEntry(sidFile.f_name, 0, STIL::all);
+			stilBug = sidEngine.d_stilbase.getAbsBug(sidFile.f_name, sidEngine.p_subsong);
 		}
 
 		if (stilComment != NULL) {
@@ -745,13 +759,15 @@ static DWORD WINAPI SIDevo_Open(const char* filename, XMPFILE file)
 {
 	SIDevo_Init();
 	if (sidEngine.b_loaded) {
-		sidEngine.o_sidfilename = filename;
-		uint_least8_t* c64buf = new uint_least8_t[xmpffile->GetSize(file)];
-		xmpffile->Read(file, c64buf, xmpffile->GetSize(file));
-		sidEngine.p_song = new SidTune(c64buf, xmpffile->GetSize(file));
-		delete[] c64buf;
+		// load sid file information into struct for reference
+		sidFile.f_name = filename;
+		sidFile.f_size = xmpffile->GetSize(file);
+		sidFile.f_buffer = (unsigned char*)xmpfmisc->Alloc(sidFile.f_size);
+		xmpffile->Read(file, sidFile.f_buffer, sidFile.f_size);
 
+		sidEngine.p_song = new SidTune(sidFile.f_buffer, sidFile.f_size);
 		if (!sidEngine.p_song->getStatus()) {
+			delete[] sidFile.f_buffer;
 			return 0;
 		} else {
 			sidEngine.p_songinfo = sidEngine.p_song->getInfo();
@@ -881,8 +897,7 @@ static DWORD WINAPI SIDevo_Process(float* buffer, DWORD count)
 				sidEngine.fadeouttrigger = sidEngine.p_subsonglength[sidEngine.p_subsong] - sidSetting.c_fadeoutms / 1000; // calc trigger fade-out
 				if (sidEngine.fadeouttrigger + 1 > 0) {
 					if (sidEngine.fadeout == 1) sidEngine.fadeout = 0.999;
-					//fadestep = pow(10, 3000.0 / sidSetting.c_fadeoutms / (sidEngine.m_config.frequency * sidEngine.m_config.playback));
-					fadestep = 1.0 / (float)((sidSetting.c_fadeoutms / 1000) * sidEngine.m_config.frequency * sidEngine.m_config.playback);
+					fadestep = 1.0 / (float)((sidSetting.c_fadeoutms / static_cast<float>(1000)) * sidEngine.m_config.frequency * sidEngine.m_config.playback);
 				} else
 					sidEngine.fadeout = 0;
 			} else
@@ -972,7 +987,7 @@ static double WINAPI SIDevo_SetPosition(DWORD pos)
 		int seekCount = (int)((seekTarget - seekState) * sidEngine.m_config.frequency) * sidEngine.m_config.playback;
 		short* seekBuffer = new short[seekCount];
 		seekResult = sidEngine.m_engine->play(seekBuffer, seekCount);
-		delete seekBuffer;
+		delete[] seekBuffer;
 		if (seekResult == seekCount) {
 			sidEngine.fadein = pos ? 1 : 0; // trigger fade-in if restarting
 			if (!pos || pos < sidEngine.fadeouttrigger)
@@ -1092,11 +1107,12 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			break;
 		case IDC_BUTTON_FOLDER:
 			SetDlgItemTextA(hWnd, IDC_EDIT_DBPATH, selectFolder(hWnd).c_str());
+			MESS(IDC_EDIT_DBPATH, WM_GETTEXT, 250, sidSetting.c_dbpath);
+			MESS(IDC_LABEL_STATUS, WM_SETTEXT, 0, pathTest().c_str());
 			break;
 		case IDC_BUTTON_TEST:
-			char tempPath[250];
-			MESS(IDC_EDIT_DBPATH, WM_GETTEXT, 250, tempPath);
-			MESS(IDC_LABEL_STATUS, WM_SETTEXT, 0, pathTest(tempPath).c_str());
+			MESS(IDC_EDIT_DBPATH, WM_GETTEXT, 250, sidSetting.c_dbpath);
+			MESS(IDC_LABEL_STATUS, WM_SETTEXT, 0, pathTest().c_str());
 			break;
 		case IDCANCEL:
 			EndDialog(hWnd, 0);
@@ -1140,7 +1156,7 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		SetDlgItemInt(hWnd, IDC_EDIT_MINLENGTH, sidSetting.c_minlength, false);
 		SetDlgItemInt(hWnd, IDC_EDIT_POWERDELAY, sidSetting.c_powerdelay, false);
 		SetDlgItemTextA(hWnd, IDC_EDIT_DBPATH, sidSetting.c_dbpath);
-		MESS(IDC_LABEL_STATUS, WM_SETTEXT, 0, pathTest(sidSetting.c_dbpath).c_str());
+		MESS(IDC_LABEL_STATUS, WM_SETTEXT, 0, pathTest().c_str());
 		//
 		return TRUE;
 	}
