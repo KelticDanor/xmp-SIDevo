@@ -32,6 +32,7 @@ v4.0
 	- Loading of sids directly from web urls
 - sidid.cfg is now loaded from the plugin directly instead of HVSC DOCUMENTS/
 - HVSC Documents path purpose made clearer and added browse & test buttons
+- Windows XP support added
 
 
 ### Big Thanks To
