@@ -73,6 +73,7 @@ typedef struct
 	int o_sidchips;
 	char o_sidmodel[10];
 	char o_clockspeed[10];
+	const char* o_filename;
 
 	float fadein;
 	float fadeout;
@@ -109,14 +110,6 @@ typedef struct
 	bool c_defaultonly;
 } SIDsetting;
 static SIDsetting sidSetting;
-
-typedef struct
-{
-	uint_least8_t* f_buffer;
-	const char* f_name;
-	int f_size;
-} SIDfile;
-static SIDfile sidFile;
 
 // pretty up the format
 static const char* simpleFormat(const char* songFormat) {
@@ -403,16 +396,13 @@ static std::string pathTest() {
 // functions to load and fetch the SIDId
 static void loadSIDId() {
 	if (sidSetting.c_detectplayer && !sidEngine.d_loadedsidid) {
-		char pluginPath[MAX_PATH];
+		TCHAR pluginPath[FILENAME_MAX];
 		std::string configPath;
-		HMODULE pluginHandle = NULL;
-		if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&loadSIDId, &pluginHandle) != 0) {
-			if (GetModuleFileName(pluginHandle, pluginPath, sizeof(pluginPath)) != 0) {
-				std::string::size_type slashPos = std::string(pluginPath).find_last_of("\\/");
-				configPath = std::string(pluginPath).substr(0, slashPos + 1);
-				configPath.append("sidid.cfg");
-			}
-		}
+		GetModuleFileName(ghInstance, pluginPath, FILENAME_MAX);
+		std::string::size_type slashPos = std::string(pluginPath).find_last_of("\\/");
+		configPath = std::string(pluginPath).substr(0, slashPos + 1);
+		configPath.append("sidid.cfg");
+		
 		if (FILE* file = fopen(configPath.c_str(), "r")) {
 			fclose(file);
 			sidEngine.d_loadedsidid = sidEngine.d_sididbase.readConfigFile(configPath);
@@ -421,12 +411,11 @@ static void loadSIDId() {
 		}
 	}
 }
-static void fetchSIDId(XMPFILE file) {
+static void fetchSIDId(std::vector<uint8_t> c64buf) {
 	if (sidEngine.d_loadedsidid) {
 		// adapted sidid code, could be more efficient
 		std::string c64player;
-		std::vector<uint_least8_t> buffer(&sidFile.f_buffer[0], &sidFile.f_buffer[sidFile.f_size]);
-		c64player = sidEngine.d_sididbase.identify(buffer);
+		c64player = sidEngine.d_sididbase.identify(c64buf);
 		while (c64player.find("_") != -1)
 			c64player.replace(c64player.find("_"), 1, " ");
 
@@ -628,11 +617,9 @@ static DWORD WINAPI SIDevo_GetFileInfo(const char* filename, XMPFILE file, float
 	const SidTuneInfo* lu_songinfo;
 	int lu_songcount;
 
-	int c64size = xmpffile->GetSize(file);
-	uint_least8_t* c64buff = new uint_least8_t[c64size];
-	xmpffile->Read(file, c64buff, c64size);
-	lu_song = new SidTune(c64buff, c64size);
-	delete[] c64buff;
+	std::vector<uint8_t> c64buf(xmpffile->GetSize(file));
+	xmpffile->Read(file, c64buf.data(), c64buf.size());
+	lu_song = new SidTune(c64buf.data(), c64buf.size());
 
 	if (!lu_song->getStatus()) {
 		delete lu_song;
@@ -731,9 +718,9 @@ static void WINAPI SIDevo_GetMessage(char* buf)
 
 		// txt stil lookup
 		if (sidEngine.d_loadedstil) {
-			stilComment = sidEngine.d_stilbase.getAbsGlobalComment(sidFile.f_name);
-			stilEntry = sidEngine.d_stilbase.getAbsEntry(sidFile.f_name, 0, STIL::all);
-			stilBug = sidEngine.d_stilbase.getAbsBug(sidFile.f_name, sidEngine.p_subsong);
+			stilComment = sidEngine.d_stilbase.getAbsGlobalComment(sidEngine.o_filename);
+			stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_filename, 0, STIL::all);
+			stilBug = sidEngine.d_stilbase.getAbsBug(sidEngine.o_filename, sidEngine.p_subsong);
 		}
 
 		if (stilComment != NULL) {
@@ -760,14 +747,12 @@ static DWORD WINAPI SIDevo_Open(const char* filename, XMPFILE file)
 	SIDevo_Init();
 	if (sidEngine.b_loaded) {
 		// load sid file information into struct for reference
-		sidFile.f_name = filename;
-		sidFile.f_size = xmpffile->GetSize(file);
-		sidFile.f_buffer = (unsigned char*)xmpfmisc->Alloc(sidFile.f_size);
-		xmpffile->Read(file, sidFile.f_buffer, sidFile.f_size);
+		sidEngine.o_filename = filename;
 
-		sidEngine.p_song = new SidTune(sidFile.f_buffer, sidFile.f_size);
+		std::vector<uint8_t> c64buf(xmpffile->GetSize(file));
+		xmpffile->Read(file, c64buf.data(), c64buf.size());
+		sidEngine.p_song = new SidTune(c64buf.data(), c64buf.size());
 		if (!sidEngine.p_song->getStatus()) {
-			delete[] sidFile.f_buffer;
 			return 0;
 		} else {
 			sidEngine.p_songinfo = sidEngine.p_song->getInfo();
@@ -826,7 +811,7 @@ static DWORD WINAPI SIDevo_Open(const char* filename, XMPFILE file)
 
 			// detect player
 			loadSIDId();
-			fetchSIDId(file);
+			fetchSIDId(c64buf);
 
 			// load lengths
 			loadSonglength();
