@@ -411,7 +411,7 @@ static void loadSIDId() {
 		}
 	}
 }
-static void fetchSIDId(std::vector<uint8_t> c64buf) {
+static void fetchSIDId(std::vector<uint8_t>& c64buf) {
 	if (sidEngine.d_loadedsidid) {
 		// adapted sidid code, could be more efficient
 		std::string c64player;
