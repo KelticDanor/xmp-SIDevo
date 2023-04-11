@@ -3,7 +3,7 @@ SID Input Plugin for the XMPlay audio player
 
 
 ### Description
-This is a partial rewrite and update of my old SIDex v1.0~ plugin, it has now been rewritten using Visual Studio 2022 and the most recent libsidplayfp-2.4.2 library.
+This is a partial rewrite and update of my old SIDex v1.0~ plugin, it has now been rewritten using Visual Studio 2022 and the most recent libsidplayfp-2.5.0a library.
 
 - Fade-in support to try and remove clicks
 - SLDB, STIL, BUGlist from HVSC supported
