@@ -18,8 +18,8 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
-v4.1
-- libsidplayfp library updated to 2.5.0a
+v4.1a
+- libsidplayfp library updated to 2.5.0a2
 
 v4.0
 - Initial new release
