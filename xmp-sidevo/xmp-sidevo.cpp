@@ -591,7 +591,7 @@ static void WINAPI SIDevo_Init()
 static void WINAPI SIDevo_About(HWND win)
 {
 	MessageBoxA(win,
-		"XMPlay SIDevo plugin (v4.1)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid,mus and str tunes from the Commodore 64 using the libsidplayfp-2.5.0a library.\n\nAdditional Credits:\nCopyright (c) 2000 - 2001 Simon White\nCopyright (c) 2007 - 2010 Antti Lankila\nCopyright (c) 2010 - 2021 Leandro Nini\n\nFREE FOR USE WITH XMPLAY",
+		"XMPlay SIDevo plugin (v4.1a)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid,mus and str tunes from the Commodore 64 using the libsidplayfp-2.5.0a2 library.\n\nAdditional Credits:\nCopyright (c) 2000 - 2001 Simon White\nCopyright (c) 2007 - 2010 Antti Lankila\nCopyright (c) 2010 - 2021 Leandro Nini\n\nFREE FOR USE WITH XMPLAY",
 		"About...",
 		MB_ICONINFORMATION);
 }
@@ -705,7 +705,7 @@ static void WINAPI SIDevo_GetGeneralInfo(char* buf)
 	}
 
 	buf += sprintf(buf, "%s\t%s\r", "Length", simpleLength(sidEngine.p_songlength, temp));
-	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.5.0a");
+	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.5.0a2");
 }
 static void WINAPI SIDevo_GetMessage(char* buf)
 {
@@ -882,7 +882,8 @@ static DWORD WINAPI SIDevo_Process(float* buffer, DWORD count)
 				sidEngine.fadeouttrigger = sidEngine.p_subsonglength[sidEngine.p_subsong] - sidSetting.c_fadeoutms / 1000; // calc trigger fade-out
 				if (sidEngine.fadeouttrigger + 1 > 0) {
 					if (sidEngine.fadeout == 1) sidEngine.fadeout = 0.999;
-					fadestep = 1.0 / (float)((sidSetting.c_fadeoutms / static_cast<float>(1000)) * sidEngine.m_config.frequency * sidEngine.m_config.playback);
+					//fadestep = 1.0 / (float)((sidSetting.c_fadeoutms / static_cast<float>(1000)) * sidEngine.m_config.frequency * sidEngine.m_config.playback);                    
+					fadestep = 1.0 / (float)((sidSetting.c_fadeoutms / 1000) * sidEngine.m_config.frequency * sidEngine.m_config.playback);
 				} else
 					sidEngine.fadeout = 0;
 			} else
@@ -1155,7 +1156,7 @@ static void WINAPI SIDevo_Config(HWND win)
 // plugin interface
 static XMPIN xmpin = {
 	0,
-	"SIDevo (v4.1)",
+	"SIDevo (v4.1a)",
 	"SIDevo\0sid/mus/str",
 	SIDevo_About,
 	SIDevo_Config,
