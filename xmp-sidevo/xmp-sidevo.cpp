@@ -63,6 +63,7 @@ typedef struct
 	int p_songcount;
 	int p_subsong;
 	int p_defsubsong;
+	int p_playbacklength;
 	int p_songlength;
 	int* p_subsonglength;
 	char p_sidmodel[10];
@@ -108,6 +109,8 @@ typedef struct
 	bool c_detectplayer;
 	bool c_defaultskip;
 	bool c_defaultonly;
+	bool c_addfadeout;
+	bool c_subsongstil;
 } SIDsetting;
 static SIDsetting sidSetting;
 
@@ -166,6 +169,8 @@ static void loadConfig()
 		sidSetting.c_detectplayer = TRUE;
 		sidSetting.c_defaultskip = FALSE;
 		sidSetting.c_defaultonly = FALSE;
+		sidSetting.c_addfadeout = FALSE;
+		sidSetting.c_subsongstil = FALSE;
 
 		if (xmpfreg->GetString("SIDevo", "c_sidmodel", sidSetting.c_sidmodel, 10) != 0) {
 			xmpfreg->GetString("SIDevo", "c_clockspeed", sidSetting.c_clockspeed, 10);
@@ -206,6 +211,10 @@ static void loadConfig()
 				sidSetting.c_defaultskip = ival;
 			if (xmpfreg->GetInt("SIDevo", "c_defaultonly", &ival))
 				sidSetting.c_defaultonly = ival;
+			if (xmpfreg->GetInt("SIDevo", "c_addfadeout", &ival))
+				sidSetting.c_addfadeout = ival;
+			if (xmpfreg->GetInt("SIDevo", "c_subsongstil", &ival))
+				sidSetting.c_subsongstil = ival;
 		}
 	}
 }
@@ -307,6 +316,10 @@ static void saveConfig()
 	xmpfreg->SetInt("SIDevo", "c_defaultskip", &ival);
 	ival = sidSetting.c_defaultonly;
 	xmpfreg->SetInt("SIDevo", "c_defaultonly", &ival);
+	ival = sidSetting.c_addfadeout;
+	xmpfreg->SetInt("SIDevo", "c_addfadeout", &ival);
+	ival = sidSetting.c_subsongstil;
+	xmpfreg->SetInt("SIDevo", "c_subsongstil", &ival);
 
 	if (sidEngine.b_loaded) {
 		applyConfig(FALSE);
@@ -451,15 +464,18 @@ static void loadSonglength() {
 static int fetchSonglength(SidTune* sidSong, int sidSubsong) {
 	char md5[SidTune::MD5_LENGTH + 1];
 	int32_t md5duration = 0;
+	int32_t debug2 = 0;
 	int32_t defaultduration = sidSetting.c_defaultlength;
+	char debug[255];
 
 	if (!sidSetting.c_forcelength && sidEngine.d_loadeddbase) {
 		sidSong->createMD5New(md5);
 		if (strlen(md5) > 0) {
-			md5duration = sidEngine.d_songdbase.length(md5, sidSubsong);
+			//md5duration = sidEngine.d_songdbase.length(md5, sidSubsong);
+			md5duration = sidEngine.d_songdbase.lengthMs(md5, sidSubsong);
 		}
 		if (md5duration > 0) {
-			defaultduration = md5duration;
+			defaultduration = ((md5duration + 999) / 1000);
 		}
 	}
 
@@ -591,7 +607,7 @@ static void WINAPI SIDevo_Init()
 static void WINAPI SIDevo_About(HWND win)
 {
 	MessageBoxA(win,
-		"XMPlay SIDevo plugin (v4.1a)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid,mus and str tunes from the Commodore 64 using the libsidplayfp-2.5.0a2 library.\n\nAdditional Credits:\nCopyright (c) 2000 - 2001 Simon White\nCopyright (c) 2007 - 2010 Antti Lankila\nCopyright (c) 2010 - 2021 Leandro Nini\n\nFREE FOR USE WITH XMPLAY",
+		"XMPlay SIDevo plugin (v4.2)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid,mus and str tunes from the Commodore 64 using the libsidplayfp-2.5.0 library.\n\nAdditional Credits:\nCopyright (c) 2000 - 2001 Simon White\nCopyright (c) 2007 - 2010 Antti Lankila\nCopyright (c) 2010 - 2021 Leandro Nini\n\nFREE FOR USE WITH XMPLAY",
 		"About...",
 		MB_ICONINFORMATION);
 }
@@ -709,7 +725,20 @@ static void WINAPI SIDevo_GetGeneralInfo(char* buf)
 }
 static void WINAPI SIDevo_GetMessage(char* buf)
 {
-	// Load STIL database
+	// add basic song information
+	static const char* tagname[3] = { "title", "artist", "date" };
+	for (int a = 0; a < 3; a++) {
+		const char* tag = sidEngine.p_songinfo->infoString(a);
+		if (tag[0]) {
+			char* tagval = xmpftext->Utf8(tag, -1);
+			buf += sprintf(buf, "%s\t%s\r", tagname[a], tagval);
+			xmpfmisc->Free(tagval);
+		}
+	}
+	if (buf != NULL) {
+		buf += sprintf(buf, "\r");
+	}
+	// load STIL database
 	loadSTILbase();
 	if (sidEngine.d_loadedstil) {
 		const char* stilComment = NULL;
@@ -719,7 +748,11 @@ static void WINAPI SIDevo_GetMessage(char* buf)
 		// txt stil lookup
 		if (sidEngine.d_loadedstil) {
 			stilComment = sidEngine.d_stilbase.getAbsGlobalComment(sidEngine.o_filename);
-			stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_filename, 0, STIL::all);
+			if (sidSetting.c_subsongstil) {
+				stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_filename, sidEngine.p_subsong, STIL::all);
+			} else {
+				stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_filename, 0, STIL::all);
+			}
 			stilBug = sidEngine.d_stilbase.getAbsBug(sidEngine.o_filename, sidEngine.p_subsong);
 		}
 
@@ -824,10 +857,16 @@ static DWORD WINAPI SIDevo_Open(const char* filename, XMPFILE file)
 			}
 
 			if (sidEngine.m_engine->load(sidEngine.p_song)) {
+				sidEngine.p_playbacklength = sidEngine.p_subsonglength[sidEngine.p_subsong];
+				// add fade out if set
+				if (sidSetting.c_defaultlength != 0 && sidSetting.c_fadeout && sidSetting.c_addfadeout) {
+					sidEngine.p_playbacklength += (sidSetting.c_fadeoutms / 1000);
+				}
+				// pass duration to xmplay
 				if (sidSetting.c_defaultlength == 0 || sidSetting.c_disableseek) {
-					xmpfin->SetLength(sidEngine.p_subsonglength[sidEngine.p_subsong], FALSE);
+					xmpfin->SetLength(sidEngine.p_playbacklength, FALSE);
 				} else {
-					xmpfin->SetLength(sidEngine.p_subsonglength[sidEngine.p_subsong], TRUE);
+					xmpfin->SetLength(sidEngine.p_playbacklength, TRUE);
 				}
 				sidEngine.fadein = 0; // trigger fade-in
 				sidEngine.fadeout = 1; // trigger fade-out
@@ -868,7 +907,7 @@ static DWORD WINAPI SIDevo_Process(float* buffer, DWORD count)
 	}
 
 	// process
-	if (sidEngine.m_engine->time() < sidEngine.p_subsonglength[sidEngine.p_subsong] || sidSetting.c_defaultlength == 0) {
+	if (sidEngine.m_engine->time() < sidEngine.p_playbacklength || sidSetting.c_defaultlength == 0) {
 		// set-up fade-in & fade-out
 		float fadestep;
 		if (sidEngine.fadein < 1) {
@@ -879,7 +918,7 @@ static DWORD WINAPI SIDevo_Process(float* buffer, DWORD count)
 				sidEngine.fadein = 1;
 		} else if (sidEngine.fadeout > 0) {
 			if (sidSetting.c_fadeout && sidSetting.c_fadeoutms > 0) {
-				sidEngine.fadeouttrigger = sidEngine.p_subsonglength[sidEngine.p_subsong] - sidSetting.c_fadeoutms / 1000; // calc trigger fade-out
+				sidEngine.fadeouttrigger = sidEngine.p_playbacklength - sidSetting.c_fadeoutms / 1000; // calc trigger fade-out
 				if (sidEngine.fadeouttrigger + 1 > 0) {
 					if (sidEngine.fadeout == 1) sidEngine.fadeout = 0.999;
 					//fadestep = 1.0 / (float)((sidSetting.c_fadeoutms / static_cast<float>(1000)) * sidEngine.m_config.frequency * sidEngine.m_config.playback);                    
@@ -941,10 +980,16 @@ static double WINAPI SIDevo_SetPosition(DWORD pos)
 		sidEngine.p_song->selectSong(sidEngine.p_subsong);
 		sidEngine.m_engine->load(sidEngine.p_song);
 		//
+		sidEngine.p_playbacklength = sidEngine.p_subsonglength[sidEngine.p_subsong];
+		// add fade out if set
+		if (sidSetting.c_defaultlength != 0 && sidSetting.c_fadeout && sidSetting.c_addfadeout) {
+			sidEngine.p_playbacklength += (sidSetting.c_fadeoutms / 1000);
+		}
+		// pass duration to xmplay
 		if (sidSetting.c_defaultlength == 0 || sidSetting.c_disableseek) {
-			xmpfin->SetLength(sidEngine.p_subsonglength[sidEngine.p_subsong], FALSE);
+			xmpfin->SetLength(sidEngine.p_playbacklength, FALSE);
 		} else {
-			xmpfin->SetLength(sidEngine.p_subsonglength[sidEngine.p_subsong], TRUE);
+			xmpfin->SetLength(sidEngine.p_playbacklength, TRUE);
 		}
 		sidEngine.fadein = 0; // trigger fade-in (needed?)
 		sidEngine.fadeout = 1; // trigger fade-out (needed?)
@@ -1075,6 +1120,8 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			sidSetting.c_detectplayer = (BST_CHECKED == MESS(IDC_CHECK_DETECTPLAYER, BM_GETCHECK, 0, 0));
 			sidSetting.c_defaultskip = (BST_CHECKED == MESS(IDC_CHECK_DEFAULTSKIP, BM_GETCHECK, 0, 0));
 			sidSetting.c_defaultonly = (BST_CHECKED == MESS(IDC_CHECK_DEFAULTONLY, BM_GETCHECK, 0, 0));
+			sidSetting.c_addfadeout = (BST_CHECKED == MESS(IDC_CHECK_ADDFADEOUT, BM_GETCHECK, 0, 0));
+			sidSetting.c_subsongstil = (BST_CHECKED == MESS(IDC_CHECK_FETCHSUBSTIL, BM_GETCHECK, 0, 0));
 			MESS(IDC_COMBO_SID, WM_GETTEXT, 10, sidSetting.c_sidmodel);
 			MESS(IDC_COMBO_CLOCK, WM_GETTEXT, 10, sidSetting.c_clockspeed);
 			MESS(IDC_COMBO_SAMPLEMETHOD, WM_GETTEXT, 10, sidSetting.c_samplemethod);
@@ -1135,6 +1182,8 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		MESS(IDC_CHECK_DETECTPLAYER, BM_SETCHECK, sidSetting.c_detectplayer ? BST_CHECKED : BST_UNCHECKED, 0);
 		MESS(IDC_CHECK_DEFAULTSKIP, BM_SETCHECK, sidSetting.c_defaultskip ? BST_CHECKED : BST_UNCHECKED, 0);
 		MESS(IDC_CHECK_DEFAULTONLY, BM_SETCHECK, sidSetting.c_defaultonly ? BST_CHECKED : BST_UNCHECKED, 0);
+		MESS(IDC_CHECK_ADDFADEOUT, BM_SETCHECK, sidSetting.c_addfadeout ? BST_CHECKED : BST_UNCHECKED, 0);
+		MESS(IDC_CHECK_FETCHSUBSTIL, BM_SETCHECK, sidSetting.c_subsongstil ? BST_CHECKED : BST_UNCHECKED, 0);
 		MESS(IDC_CHECK_SKIPSHORT, BM_SETCHECK, sidSetting.c_skipshort ? BST_CHECKED : BST_UNCHECKED, 0);
 		MESS(IDC_CHECK_FADEIN, BM_SETCHECK, sidSetting.c_fadein ? BST_CHECKED : BST_UNCHECKED, 0);
 		MESS(IDC_CHECK_FADEOUT, BM_SETCHECK, sidSetting.c_fadeout ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -1156,7 +1205,7 @@ static void WINAPI SIDevo_Config(HWND win)
 // plugin interface
 static XMPIN xmpin = {
 	0,
-	"SIDevo (v4.1a)",
+	"SIDevo (v4.2)",
 	"SIDevo\0sid/mus/str",
 	SIDevo_About,
 	SIDevo_Config,
