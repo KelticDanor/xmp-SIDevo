@@ -22,6 +22,7 @@ v4.2
 - libsidplayfp library updated to 2.5.0
 - Added "Add Fade-out to duration" to fade options
 - Added "Fetch only current Sub-song STIL info" in miscellaneous options
+- Title/Artist/Date added to the Message tab
 - Song length duration now retrieved as milliseconds and rounded up by default
 
 v4.0
