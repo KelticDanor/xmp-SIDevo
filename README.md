@@ -18,8 +18,11 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
-v4.1a
-- libsidplayfp library updated to 2.5.0a2
+v4.2
+- libsidplayfp library updated to 2.5.0
+- Added "Add Fade-out to duration" to fade options
+- Added "Fetch only current Sub-song STIL info" in miscellaneous options
+- Song length duration now retrieved as milliseconds and rounded up by default
 
 v4.0
 - Initial new release
