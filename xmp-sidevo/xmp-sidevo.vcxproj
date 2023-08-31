@@ -70,9 +70,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sidid\sidid.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="xmp-sidevo.h" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="xmp-about.rc" />
     <ResourceCompile Include="xmp-sidevo.rc" />
   </ItemGroup>
   <ItemGroup>

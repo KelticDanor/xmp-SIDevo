@@ -3,6 +3,7 @@
 #define FALSE 0
 #define TRUE 1
 
+#define IDD_DIALOG_ABOUT    990
 #define IDD_DIALOG_CONFIG    1000
 #define IDC_COMBO_SID   1010
 #define IDC_COMBO_CLOCK   1011
@@ -41,6 +42,8 @@
 #define IDC_STATIC           -1
 #define IDC_BUTTON_FOLDER   1200
 #define IDC_BUTTON_TEST   1201
+#define IDC_BUTTON_GITHUB   1202
+#define IDC_BUTTON_WWW   1203
 
 const unsigned char kernel[8192] = {
   133,86,32,15,188,165,97,201,136,144,3,32,212,186,32,204,188,165,7,24,105,129,240,243,56,233,1,72,162,5,181,105,

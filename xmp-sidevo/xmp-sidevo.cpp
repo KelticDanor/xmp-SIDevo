@@ -466,7 +466,6 @@ static int fetchSonglength(SidTune* sidSong, int sidSubsong) {
 	int32_t md5duration = 0;
 	int32_t debug2 = 0;
 	int32_t defaultduration = sidSetting.c_defaultlength;
-	char debug[255];
 
 	if (!sidSetting.c_forcelength && sidEngine.d_loadeddbase) {
 		sidSong->createMD5New(md5);
@@ -604,13 +603,6 @@ static void WINAPI SIDevo_Init()
 }
 
 // general purpose
-static void WINAPI SIDevo_About(HWND win)
-{
-	MessageBoxA(win,
-		"XMPlay SIDevo plugin (v4.2)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid,mus and str tunes from the Commodore 64 using the libsidplayfp-2.5.0 library.\n\nAdditional Credits:\nCopyright (c) 2000 - 2001 Simon White\nCopyright (c) 2007 - 2010 Antti Lankila\nCopyright (c) 2010 - 2021 Leandro Nini\n\nFREE FOR USE WITH XMPLAY",
-		"About...",
-		MB_ICONINFORMATION);
-}
 static BOOL WINAPI SIDevo_CheckFile(const char* filename, XMPFILE file)
 {
 	// +PSID, +RSID, +MUS, -P00, -PRG, -DAT, +STR
@@ -859,11 +851,11 @@ static DWORD WINAPI SIDevo_Open(const char* filename, XMPFILE file)
 			if (sidEngine.m_engine->load(sidEngine.p_song)) {
 				sidEngine.p_playbacklength = sidEngine.p_subsonglength[sidEngine.p_subsong];
 				// add fade out if set
-				if (sidSetting.c_defaultlength != 0 && sidSetting.c_fadeout && sidSetting.c_addfadeout) {
+				if (sidEngine.p_playbacklength != 0 && sidSetting.c_fadeout && sidSetting.c_addfadeout) {
 					sidEngine.p_playbacklength += (sidSetting.c_fadeoutms / 1000);
 				}
 				// pass duration to xmplay
-				if (sidSetting.c_defaultlength == 0 || sidSetting.c_disableseek) {
+				if (sidEngine.p_playbacklength == 0 || sidSetting.c_disableseek) {
 					xmpfin->SetLength(sidEngine.p_playbacklength, FALSE);
 				} else {
 					xmpfin->SetLength(sidEngine.p_playbacklength, TRUE);
@@ -907,7 +899,7 @@ static DWORD WINAPI SIDevo_Process(float* buffer, DWORD count)
 	}
 
 	// process
-	if (sidEngine.m_engine->time() < sidEngine.p_playbacklength || sidSetting.c_defaultlength == 0) {
+	if (sidEngine.m_engine->time() < sidEngine.p_playbacklength || sidEngine.p_playbacklength == 0) {
 		// set-up fade-in & fade-out
 		float fadestep;
 		if (sidEngine.fadein < 1) {
@@ -982,11 +974,11 @@ static double WINAPI SIDevo_SetPosition(DWORD pos)
 		//
 		sidEngine.p_playbacklength = sidEngine.p_subsonglength[sidEngine.p_subsong];
 		// add fade out if set
-		if (sidSetting.c_defaultlength != 0 && sidSetting.c_fadeout && sidSetting.c_addfadeout) {
+		if (sidEngine.p_playbacklength != 0 && sidSetting.c_fadeout && sidSetting.c_addfadeout) {
 			sidEngine.p_playbacklength += (sidSetting.c_fadeoutms / 1000);
 		}
 		// pass duration to xmplay
-		if (sidSetting.c_defaultlength == 0 || sidSetting.c_disableseek) {
+		if (sidEngine.p_playbacklength == 0 || sidSetting.c_disableseek) {
 			xmpfin->SetLength(sidEngine.p_playbacklength, FALSE);
 		} else {
 			xmpfin->SetLength(sidEngine.p_playbacklength, TRUE);
@@ -1197,15 +1189,43 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 	}
 	return FALSE;
 }
+static BOOL CALLBACK CFGAboutProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg) {
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case IDC_BUTTON_GITHUB:
+			ShellExecute(0, 0, "https://github.com/KelticDanor/xmp-SIDevo", 0, 0, SW_SHOW);
+			break;
+		case IDC_BUTTON_WWW:
+			ShellExecute(0, 0, "https://support.xmplay.com/files_view.php?file_id=731", 0, 0, SW_SHOW);
+			break;
+		case IDOK:
+			EndDialog(hWnd, 0);
+			break;
+		case IDCANCEL:
+			EndDialog(hWnd, 0);
+			break;
+		}
+		break;
+	case WM_INITDIALOG:
+		return TRUE;
+	}
+	return FALSE;
+}
 static void WINAPI SIDevo_Config(HWND win)
 {
 	DialogBox(ghInstance, MAKEINTRESOURCE(IDD_DIALOG_CONFIG), win, &CFGDialogProc);
+}
+static void WINAPI SIDevo_About(HWND win)
+{
+	DialogBox(ghInstance, MAKEINTRESOURCE(IDD_DIALOG_ABOUT), win, &CFGAboutProc);
 }
 
 // plugin interface
 static XMPIN xmpin = {
 	0,
-	"SIDevo (v4.2)",
+	"SIDevo (v4.3)",
 	"SIDevo\0sid/mus/str",
 	SIDevo_About,
 	SIDevo_Config,
