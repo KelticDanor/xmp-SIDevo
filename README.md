@@ -18,6 +18,11 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
+v4.3
+- Links to Github and XMPlay Support page added to the about box
+- Default duration of 0 seconds will no longer override HVSC song lengths
+- sidid.cfg updated to version from 2 July 2023
+  
 v4.2
 - libsidplayfp library updated to 2.5.0
 - Added "Add Fade-out to duration" to fade options
@@ -39,7 +44,6 @@ v4.0
 	- Loading of sids directly from web urls
 - sidid.cfg is now loaded from the plugin directly instead of HVSC DOCUMENTS/
 - HVSC Documents path purpose made clearer and added browse & test buttons
-- Windows XP support added
 
 
 ### Big Thanks To
