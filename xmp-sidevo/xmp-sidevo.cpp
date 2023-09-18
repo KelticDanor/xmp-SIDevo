@@ -58,7 +58,8 @@ typedef struct
 	bool d_loadeddbase;
 	bool d_loadedstil;
 	bool d_loadedsidid;
-	char p_sididplayer[25];
+	char p_sididplayer[50];
+	char p_sididplayers[250];
 	const SidTuneInfo* p_songinfo;
 	int p_songcount;
 	int p_subsong;
@@ -429,10 +430,21 @@ static void fetchSIDId(std::vector<uint8_t>& c64buf) {
 		// adapted sidid code, could be more efficient
 		std::string c64player;
 		c64player = sidEngine.d_sididbase.identify(c64buf);
-		while (c64player.find("_") != -1)
-			c64player.replace(c64player.find("_"), 1, " ");
 
-		memcpy(sidEngine.p_sididplayer, c64player.c_str(), 25);
+		strncpy(sidEngine.p_sididplayer, "", 50);
+		strncpy(sidEngine.p_sididplayers, "", 250);
+		if (sizeof(c64player) > 0) {
+			while (c64player.find("_") != -1)
+				c64player.replace(c64player.find("_"), 1, " ");
+
+			if (c64player.find("\r\t") != -1) {
+				strncpy(sidEngine.p_sididplayer, c64player.substr(0, c64player.find("\r\t")).c_str(), 50);
+				strncpy(sidEngine.p_sididplayers, c64player.c_str(), 250);
+			} else {
+				strncpy(sidEngine.p_sididplayer, c64player.c_str(), 50);
+				strncpy(sidEngine.p_sididplayers, c64player.c_str(), 250);
+			}
+		}
 	}
 }
 // functions to load and fetch the songlengthdbase
@@ -681,8 +693,8 @@ static void WINAPI SIDevo_GetGeneralInfo(char* buf)
 	static char temp[32]; // buffer for simpleLength
 
 	buf += sprintf(buf, "%s\t%s\r", "Format", sidEngine.p_songinfo->formatString());
-	if (strlen(sidEngine.p_sididplayer) > 0)
-		buf += sprintf(buf, "%s\t%s\r", "Player", sidEngine.p_sididplayer);
+	if (strlen(sidEngine.p_sididplayers) > 0)
+		buf += sprintf(buf, "%s\t%s\r", "Players", sidEngine.p_sididplayers);
 
 	if (sidEngine.o_sidchips > 0) {
 		buf += sprintf(buf, "%s\t#%d", "Sid Info", sidEngine.o_sidchips);
@@ -713,7 +725,7 @@ static void WINAPI SIDevo_GetGeneralInfo(char* buf)
 	}
 
 	buf += sprintf(buf, "%s\t%s\r", "Length", simpleLength(sidEngine.p_songlength, temp));
-	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.5.0a2");
+	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.5.0");
 }
 static void WINAPI SIDevo_GetMessage(char* buf)
 {
@@ -879,6 +891,7 @@ static void WINAPI SIDevo_Close()
 		}
 		delete sidEngine.p_subsonglength;
 		delete sidEngine.p_sididplayer;
+		delete sidEngine.p_sididplayers;
 		delete sidEngine.p_song;
 	}
 }
@@ -1225,7 +1238,7 @@ static void WINAPI SIDevo_About(HWND win)
 // plugin interface
 static XMPIN xmpin = {
 	0,
-	"SIDevo (v4.3)",
+	"SIDevo (v4.4)",
 	"SIDevo\0sid/mus/str",
 	SIDevo_About,
 	SIDevo_Config,
