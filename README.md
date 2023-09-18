@@ -18,6 +18,9 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
+v4.4
+- SIDId now returns multiple players if applicable
+
 v4.3
 - Links to Github and XMPlay Support page added to the about box
 - Default duration of 0 seconds will no longer override HVSC song lengths
