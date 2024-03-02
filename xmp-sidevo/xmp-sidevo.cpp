@@ -338,12 +338,12 @@ static inline std::string& trim(std::string& s) {
 int CALLBACK callbackFolder(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData) {
 	LPITEMIDLIST pidlNavigate;
 	switch (uMsg) {
-		case BFFM_INITIALIZED: {
-			pidlNavigate = (LPITEMIDLIST)lpData;
-			if (pidlNavigate != NULL)
-				SendMessage(hwnd, BFFM_SETSELECTION, (WPARAM)FALSE, (LPARAM)pidlNavigate);
-		}
-		break;
+	case BFFM_INITIALIZED: {
+		pidlNavigate = (LPITEMIDLIST)lpData;
+		if (pidlNavigate != NULL)
+			SendMessage(hwnd, BFFM_SETSELECTION, (WPARAM)FALSE, (LPARAM)pidlNavigate);
+	}
+						 break;
 	}
 	return 0;
 }
@@ -416,7 +416,7 @@ static void loadSIDId() {
 		std::string::size_type slashPos = std::string(pluginPath).find_last_of("\\/");
 		configPath = std::string(pluginPath).substr(0, slashPos + 1);
 		configPath.append("sidid.cfg");
-		
+
 		if (FILE* file = fopen(configPath.c_str(), "r")) {
 			fclose(file);
 			sidEngine.d_loadedsidid = sidEngine.d_sididbase.readConfigFile(configPath);
@@ -633,11 +633,18 @@ static BOOL WINAPI SIDevo_CheckFile(const char* filename, XMPFILE file)
 }
 static DWORD WINAPI SIDevo_GetFileInfo(const char* filename, XMPFILE file, float** length, char** tags)
 {
+	// reject invalid files
+	if (!SIDevo_CheckFile(filename, file)) {
+		return 0;
+	}
+
+	// reject invalid tunes
 	SidTune* lu_song;
 	const SidTuneInfo* lu_songinfo;
 	int lu_songcount;
 
 	std::vector<uint8_t> c64buf(xmpffile->GetSize(file));
+	xmpffile->Seek(file, 0);
 	xmpffile->Read(file, c64buf.data(), c64buf.size());
 	lu_song = new SidTune(c64buf.data(), c64buf.size());
 
@@ -648,7 +655,6 @@ static DWORD WINAPI SIDevo_GetFileInfo(const char* filename, XMPFILE file, float
 
 	lu_songinfo = lu_song->getInfo();
 	lu_songcount = lu_songinfo->songs();
-
 	if (length) {
 		// load lengths
 		loadSonglength();
@@ -657,12 +663,11 @@ static DWORD WINAPI SIDevo_GetFileInfo(const char* filename, XMPFILE file, float
 			(*length)[si - 1] = fetchSonglength(lu_song, si);
 		}
 	}
-
 	if (tags)
 		*tags = GetTags(lu_songinfo);
 
 	delete lu_song;
-
+	
 	return lu_songcount | XMPIN_INFO_NOSUBTAGS;
 }
 static DWORD WINAPI SIDevo_GetSubSongs(float* length) {
@@ -725,11 +730,69 @@ static void WINAPI SIDevo_GetGeneralInfo(char* buf)
 	}
 
 	buf += sprintf(buf, "%s\t%s\r", "Length", simpleLength(sidEngine.p_songlength, temp));
-	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.5.0");
+	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.6.0");
+}
+static inline unsigned char petscii2ascii(unsigned char ch)
+{
+	if ((ch > 0xc0) && (ch < 0xdb)) return ch - 96;   // lowercase chars
+	else if ((ch >= 0x40) && (ch < 0x5e)) return ch;  // uppercase chars
+	else if (ch == 0xa4) return 0x5f;                 // underscore
+	else if ((ch >= ' ' && ch <= '@') || ch == '[' || ch == ']' || ch == '\r') return ch; // numbers/symbols/newlines (no change)
+	return 0;
+}
+static void fetchWDS(char** buf) {
+	std::string wdsExt = "";
+	if (strlen(sidEngine.o_filename) > 4 && std::string(sidEngine.o_filename).find(".mus") != std::string::npos) {
+		wdsExt = ".wds";
+	} else if (strlen(sidEngine.o_filename) > 4 && std::string(sidEngine.o_filename).find(".MUS") != std::string::npos) {
+		wdsExt = ".WDS";
+	}
+	if (wdsExt.length() > 0) {
+		std::string wdsName = sidEngine.o_filename;
+		wdsName = wdsName.substr(0, wdsName.find_last_of('.')) + wdsExt;
+
+		// fetch wds file
+		std::ifstream fin(wdsName, std::ios::binary || std::ios::in);
+		if (fin) {
+			std::vector<char> petscii, ascii;
+			char c;
+			while (fin.get(c)) {
+				petscii.push_back(c);
+			}
+			fin.close();
+
+			// convert to ascii
+			int spChar = 1;
+			for (auto ch : petscii)
+			{
+				char val = petscii2ascii(ch);
+
+				if (spChar && (val == 0x20 || val == 0x0a || val == ' ' || val == '\r')) {
+					continue;
+				} else if (!spChar && (val == 0x0a || val == '\r')) {
+					spChar = 1;
+				} else if (val) {
+					spChar = 0;
+				}
+
+				if (val)
+					ascii.push_back(val);
+			}
+
+			// send to xmplay content
+			if (ascii.size() > 0) {
+				*buf += sprintf(*buf, "WDS Contents\t-=-\r");
+				char* asciival = xmpftext->Utf8(ascii.data(), -1);
+				*buf += sprintf(*buf, asciival);
+				xmpfmisc->Free(asciival);
+				*buf += sprintf(*buf, "\r");
+			}
+		}
+	}
 }
 static void WINAPI SIDevo_GetMessage(char* buf)
 {
-	// add basic song information
+	// add basic song information and any comments/info
 	static const char* tagname[3] = { "title", "artist", "date" };
 	for (int a = 0; a < 3; a++) {
 		const char* tag = sidEngine.p_songinfo->infoString(a);
@@ -739,41 +802,64 @@ static void WINAPI SIDevo_GetMessage(char* buf)
 			xmpfmisc->Free(tagval);
 		}
 	}
+	// add comments (just .MUS I think?)
+	if (sidEngine.p_songinfo->numberOfCommentStrings() > 0) {
+		buf += sprintf(buf, "MUS Comments\t-=-\r");
+		for (int b = 0; b < sidEngine.p_songinfo->numberOfCommentStrings(); b++) {
+			char* commentval = xmpftext->Utf8(sidEngine.p_songinfo->commentString(b), -1);
+			if (commentval != '\0') {
+				buf += sprintf(buf, "%s\r", commentval);
+			}
+			xmpfmisc->Free(commentval);
+		}
+	}
 	if (buf != NULL) {
 		buf += sprintf(buf, "\r");
 	}
+
+	// load WDS file
+	fetchWDS(&buf);
+
 	// load STIL database
 	loadSTILbase();
-	if (sidEngine.d_loadedstil) {
+	if (sidEngine.d_loadedstil && strlen(sidEngine.o_filename) > 4) {
+		const char* stilGlobal = NULL;
 		const char* stilComment = NULL;
 		const char* stilEntry = NULL;
 		const char* stilBug = NULL;
+		int stilSubsong = 0;
+		if (sidSetting.c_subsongstil) {
+			stilSubsong = sidEngine.p_subsong;
+		}
 
 		// txt stil lookup
 		if (sidEngine.d_loadedstil) {
-			stilComment = sidEngine.d_stilbase.getAbsGlobalComment(sidEngine.o_filename);
+			stilGlobal = sidEngine.d_stilbase.getAbsGlobalComment(sidEngine.o_filename);
+			if (stilGlobal != NULL) {
+				buf += sprintf(buf, "STIL Global Comment\t-=-\r");
+				formatSTILbase(stilGlobal, &buf);
+				buf += sprintf(buf, "\r");
+			}
 			if (sidSetting.c_subsongstil) {
-				stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_filename, sidEngine.p_subsong, STIL::all);
-			} else {
-				stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_filename, 0, STIL::all);
+				stilComment = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_filename, 0, STIL::comment);
+				if (stilComment != NULL) {
+					buf += sprintf(buf, "STIL SID Comment\t-=-\r");
+					formatSTILbase(stilComment, &buf);
+					buf += sprintf(buf, "\r");
+				}
+			}
+			stilEntry = sidEngine.d_stilbase.getAbsEntry(sidEngine.o_filename, stilSubsong, STIL::all);
+			if (stilEntry != NULL) {
+				buf += sprintf(buf, "STIL Tune Entry\t-=-\r");
+				formatSTILbase(stilEntry, &buf);
+				buf += sprintf(buf, "\r");
 			}
 			stilBug = sidEngine.d_stilbase.getAbsBug(sidEngine.o_filename, sidEngine.p_subsong);
-		}
-
-		if (stilComment != NULL) {
-			buf += sprintf(buf, "STIL Global Comment\t-=-\r");
-			formatSTILbase(stilComment, &buf);
-			buf += sprintf(buf, "\r");
-		}
-		if (stilEntry != NULL) {
-			buf += sprintf(buf, "STIL Tune Entry\t-=-\r");
-			formatSTILbase(stilEntry, &buf);
-			buf += sprintf(buf, "\r");
-		}
-		if (stilBug != NULL) {
-			buf += sprintf(buf, "STIL Tune Bug\t-=-\r");
-			formatSTILbase(stilBug, &buf);
-			buf += sprintf(buf, "\r");
+			if (stilBug != NULL) {
+				buf += sprintf(buf, "STIL Tune Bug\t-=-\r");
+				formatSTILbase(stilBug, &buf);
+				buf += sprintf(buf, "\r");
+			}
 		}
 	}
 }
@@ -1238,7 +1324,7 @@ static void WINAPI SIDevo_About(HWND win)
 // plugin interface
 static XMPIN xmpin = {
 	0,
-	"SIDevo (v4.4)",
+	"SIDevo (v4.5)",
 	"SIDevo\0sid/mus/str",
 	SIDevo_About,
 	SIDevo_Config,
