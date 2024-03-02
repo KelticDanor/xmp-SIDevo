@@ -18,6 +18,14 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
+v4.5
+- libsidplayfp library updated to 2.6.0
+- WDS files are now shown in the Message window
+	- The reading of WDS/conversion from PETSCII is far from perfect, any code suggestions would be most welcome
+- Comments from MUS files are now showing in the Message window
+- Fixed issue with subsong STIL setting not getting sid comments
+- Fixed random scanning of invalid files causing crashes
+
 v4.4
 - SIDId now returns multiple players if applicable
 
