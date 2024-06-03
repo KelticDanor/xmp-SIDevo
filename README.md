@@ -18,6 +18,10 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
+v4.6
+- libsidplayfp library updated to 2.7.1
+- sidid.cfg updated to version from 5 May 2024
+- 
 v4.5
 - libsidplayfp library updated to 2.6.0
 - WDS files are now shown in the Message window
