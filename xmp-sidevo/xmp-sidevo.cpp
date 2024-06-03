@@ -1324,7 +1324,7 @@ static void WINAPI SIDevo_About(HWND win)
 // plugin interface
 static XMPIN xmpin = {
 	0,
-	"SIDevo (v4.5)",
+	"SIDevo (v4.6)",
 	"SIDevo\0sid/mus/str",
 	SIDevo_About,
 	SIDevo_Config,
