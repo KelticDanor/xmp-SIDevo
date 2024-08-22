@@ -18,6 +18,12 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
+v4.8
+- libsidplayfp library updated to 2.9.0
+- Errors for sidid.cfg, Songlengths.md5 and STIL now suppress themselves after showing once
+- Force mono option added
+- sidid.cfg updated to version from 10 August 2024
+
 v4.7
 - libsidplayfp library updated to 2.8.0
 
