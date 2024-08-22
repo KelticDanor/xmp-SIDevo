@@ -71,6 +71,7 @@ typedef struct
 	char p_clockspeed[10];
 	bool b_loaded;
 	bool b_reloadcfg = false;
+	bool b_noerr = false;
 
 	int o_sidchips;
 	char o_sidmodel[10];
@@ -112,6 +113,7 @@ typedef struct
 	bool c_defaultonly;
 	bool c_addfadeout;
 	bool c_subsongstil;
+	bool c_forcemono;
 } SIDsetting;
 static SIDsetting sidSetting;
 
@@ -172,6 +174,7 @@ static void loadConfig()
 		sidSetting.c_defaultonly = FALSE;
 		sidSetting.c_addfadeout = FALSE;
 		sidSetting.c_subsongstil = FALSE;
+		sidSetting.c_forcemono = FALSE;
 
 		if (xmpfreg->GetString("SIDevo", "c_sidmodel", sidSetting.c_sidmodel, 10) != 0) {
 			xmpfreg->GetString("SIDevo", "c_clockspeed", sidSetting.c_clockspeed, 10);
@@ -216,6 +219,8 @@ static void loadConfig()
 				sidSetting.c_addfadeout = ival;
 			if (xmpfreg->GetInt("SIDevo", "c_subsongstil", &ival))
 				sidSetting.c_subsongstil = ival;
+			if (xmpfreg->GetInt("SIDevo", "c_forcemono", &ival))
+				sidSetting.c_forcemono = ival;
 		}
 	}
 }
@@ -269,6 +274,7 @@ static bool applyConfig(bool initThis) {
 	sidEngine.m_builder->filter8580Curve(temp8580set);
 
 	// apply config
+	sidEngine.b_noerr = false;
 	sidEngine.m_config.sidEmulation = sidEngine.m_builder;
 	if (sidEngine.m_engine->config(sidEngine.m_config)) {
 		return TRUE;
@@ -321,6 +327,8 @@ static void saveConfig()
 	xmpfreg->SetInt("SIDevo", "c_addfadeout", &ival);
 	ival = sidSetting.c_subsongstil;
 	xmpfreg->SetInt("SIDevo", "c_subsongstil", &ival);
+	ival = sidSetting.c_forcemono;
+	xmpfreg->SetInt("SIDevo", "c_forcemono", &ival);
 
 	if (sidEngine.b_loaded) {
 		applyConfig(FALSE);
@@ -420,7 +428,8 @@ static void loadSIDId() {
 		if (FILE* file = fopen(configPath.c_str(), "r")) {
 			fclose(file);
 			sidEngine.d_loadedsidid = sidEngine.d_sididbase.readConfigFile(configPath);
-		} else {
+		} else if (!sidEngine.b_noerr) {
+			sidEngine.b_noerr = true;
 			MessageBoxA(0, "Unable to find sidid.cfg in the plugin folder, disable detect music player if you would prefer not to use SIDid.", "sidid.cfg Not Found", MB_OK);
 		}
 	}
@@ -468,7 +477,8 @@ static void loadSonglength() {
 		if (FILE* file = fopen(relpathName.c_str(), "r")) {
 			fclose(file);
 			sidEngine.d_loadeddbase = sidEngine.d_songdbase.open(relpathName.c_str());
-		} else {
+		} else if (!sidEngine.b_noerr){
+			sidEngine.b_noerr = true;
 			MessageBoxA(0, relpathName.c_str(), "Songlengths.md5 Path Invalid", MB_OK);
 		}
 	}
@@ -539,7 +549,8 @@ static void loadSTILbase() {
 
 		relpathName.replace((relpathName.length() - 10), 10, "");
 		sidEngine.d_loadedstil = sidEngine.d_stilbase.setBaseDir(relpathName.c_str());
-		if (!sidEngine.d_loadedstil) {
+		if (!sidEngine.d_loadedstil && !sidEngine.b_noerr) {
+			sidEngine.b_noerr = true;
 			MessageBoxA(0, relpathName.c_str(), "STIL Path Invalid", MB_OK);
 		}
 	}
@@ -730,7 +741,7 @@ static void WINAPI SIDevo_GetGeneralInfo(char* buf)
 	}
 
 	buf += sprintf(buf, "%s\t%s\r", "Length", simpleLength(sidEngine.p_songlength, temp));
-	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.8.0");
+	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.9.0");
 }
 static inline unsigned char petscii2ascii(unsigned char ch)
 {
@@ -1049,8 +1060,12 @@ static void WINAPI SIDevo_SetFormat(XMPFORMAT* form)
 {
 	// changing format seems to rewind the SID decoder? so only do that at start
 	if (!sidEngine.m_engine->timeMs()) {
-		sidEngine.m_config.frequency = std::max<DWORD>(form->rate, 8000);
-		sidEngine.m_config.playback = (SidConfig::playback_t)std::min<DWORD>(form->chan, 2);
+		if (sidSetting.c_forcemono) {
+			sidEngine.m_config.playback = SidConfig::MONO;
+		} else {
+			sidEngine.m_config.frequency = std::max<DWORD>(form->rate, 8000);
+			sidEngine.m_config.playback = (SidConfig::playback_t)std::min<DWORD>(form->chan, 2);
+		}
 		applyConfig(FALSE);
 	}
 	form->rate = sidEngine.m_config.frequency;
@@ -1213,6 +1228,7 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			sidSetting.c_defaultonly = (BST_CHECKED == MESS(IDC_CHECK_DEFAULTONLY, BM_GETCHECK, 0, 0));
 			sidSetting.c_addfadeout = (BST_CHECKED == MESS(IDC_CHECK_ADDFADEOUT, BM_GETCHECK, 0, 0));
 			sidSetting.c_subsongstil = (BST_CHECKED == MESS(IDC_CHECK_FETCHSUBSTIL, BM_GETCHECK, 0, 0));
+			sidSetting.c_forcemono = (BST_CHECKED == MESS(IDC_CHECK_FORCEMONO, BM_GETCHECK, 0, 0));
 			MESS(IDC_COMBO_SID, WM_GETTEXT, 10, sidSetting.c_sidmodel);
 			MESS(IDC_COMBO_CLOCK, WM_GETTEXT, 10, sidSetting.c_clockspeed);
 			MESS(IDC_COMBO_SAMPLEMETHOD, WM_GETTEXT, 10, sidSetting.c_samplemethod);
@@ -1278,6 +1294,7 @@ static BOOL CALLBACK CFGDialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		MESS(IDC_CHECK_SKIPSHORT, BM_SETCHECK, sidSetting.c_skipshort ? BST_CHECKED : BST_UNCHECKED, 0);
 		MESS(IDC_CHECK_FADEIN, BM_SETCHECK, sidSetting.c_fadein ? BST_CHECKED : BST_UNCHECKED, 0);
 		MESS(IDC_CHECK_FADEOUT, BM_SETCHECK, sidSetting.c_fadeout ? BST_CHECKED : BST_UNCHECKED, 0);
+		MESS(IDC_CHECK_FORCEMONO, BM_SETCHECK, sidSetting.c_forcemono ? BST_CHECKED : BST_UNCHECKED, 0);
 		SetDlgItemInt(hWnd, IDC_EDIT_DEFAULTLENGTH, sidSetting.c_defaultlength, false);
 		SetDlgItemInt(hWnd, IDC_EDIT_MINLENGTH, sidSetting.c_minlength, false);
 		SetDlgItemInt(hWnd, IDC_EDIT_POWERDELAY, sidSetting.c_powerdelay, false);
@@ -1324,7 +1341,7 @@ static void WINAPI SIDevo_About(HWND win)
 // plugin interface
 static XMPIN xmpin = {
 	0,
-	"SIDevo (v4.7)",
+	"SIDevo (v4.8)",
 	"SIDevo\0sid/mus/str",
 	SIDevo_About,
 	SIDevo_Config,

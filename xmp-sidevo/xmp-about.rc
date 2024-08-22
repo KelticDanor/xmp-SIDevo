@@ -7,7 +7,7 @@ CAPTION "SIDevo - Input Plugin Information"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
 CONTROL         "", IDC_STATIC, "Static", SS_WHITERECT, 0, 120, 259, 23
-LTEXT           "XMPlay SIDevo plugin (v4.7)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid,mus and str tunes from the Commodore 64 using the libsidplayfp-2.8.0 library.", IDC_STATIC, 10, 9, 240, 46, NOT WS_GROUP
+LTEXT           "XMPlay SIDevo plugin (v4.8)\nCopyright (c) 2023 Nathan Hindley\n\nThis plugin allows XMPlay to play sid,mus and str tunes from the Commodore 64 using the libsidplayfp-2.9.0 library.", IDC_STATIC, 10, 9, 240, 46, NOT WS_GROUP
 LTEXT           "Additional Credits:\nCopyright (c) 2000 - 2001 Simon White\nCopyright (c) 2007 - 2010 Antti Lankila\nCopyright (c) 2010 - 2024 Leandro Nini\n\nFREE FOR USE WITH XMPLAY", IDC_STATIC, 10, 55, 240, 57, NOT WS_GROUP
 DEFPUSHBUTTON   "OK", IDOK, 203, 124, 50, 14, BS_FLAT
 PUSHBUTTON      "GITHUB", IDC_BUTTON_GITHUB, 6, 124, 50, 14, NOT WS_TABSTOP
