@@ -18,6 +18,10 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
+v4.9
+- libsidplayfp library updated to 2.12.0
+- sidid.cfg updated to version from 28 October 2024
+
 v4.8
 - libsidplayfp library updated to 2.9.0
 - Errors for sidid.cfg, Songlengths.md5 and STIL now suppress themselves after showing once
