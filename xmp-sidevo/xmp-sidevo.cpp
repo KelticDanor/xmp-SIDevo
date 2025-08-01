@@ -166,7 +166,7 @@ static void loadConfig()
 		sidSetting.c_powerdelayrandom = TRUE;
 		sidSetting.c_forcelength = FALSE;
 		sidSetting.c_skipshort = FALSE;
-		sidSetting.c_fadein = TRUE;
+		sidSetting.c_fadein = FALSE;
 		sidSetting.c_fadeout = FALSE;
 		sidSetting.c_disableseek = FALSE;
 		sidSetting.c_detectplayer = TRUE;
@@ -741,7 +741,7 @@ static void WINAPI SIDevo_GetGeneralInfo(char* buf)
 	}
 
 	buf += sprintf(buf, "%s\t%s\r", "Length", simpleLength(sidEngine.p_songlength, temp));
-	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.12.0");
+	buf += sprintf(buf, "%s\t%s\r", "Library", "libsidplayfp-2.15.0");
 }
 static inline unsigned char petscii2ascii(unsigned char ch)
 {
@@ -1341,7 +1341,7 @@ static void WINAPI SIDevo_About(HWND win)
 // plugin interface
 static XMPIN xmpin = {
 	0,
-	"SIDevo (v4.9)",
+	"SIDevo (v4.9.1)",
 	"SIDevo\0sid/mus/str",
 	SIDevo_About,
 	SIDevo_Config,
