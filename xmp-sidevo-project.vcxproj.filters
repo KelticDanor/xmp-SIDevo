@@ -318,6 +318,9 @@
     <ClInclude Include="libsidplayfp\src\builders\residfp-builder\residfp\FilterModelConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libsidplayfp\src\simpleMixer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="libsidplayfp\src\sidtune\sidplayer1.bin">
@@ -491,6 +494,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="libsidplayfp\src\builders\residfp-builder\residfp\FilterModelConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libsidplayfp\src\simpleMixer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -109,6 +109,7 @@
     <ClInclude Include="libsidplayfp\src\sidtune\SidTuneInfoImpl.h" />
     <ClInclude Include="libsidplayfp\src\sidtune\SidTuneTools.h" />
     <ClInclude Include="libsidplayfp\src\sidtune\SmartPtr.h" />
+    <ClInclude Include="libsidplayfp\src\simpleMixer.h" />
     <ClInclude Include="libsidplayfp\src\stringutils.h" />
     <ClInclude Include="libsidplayfp\src\utils\iMd5.h" />
     <ClInclude Include="libsidplayfp\src\utils\iniParser.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="libsidplayfp\src\sidtune\PSID.cpp" />
     <ClCompile Include="libsidplayfp\src\sidtune\SidTuneBase.cpp" />
     <ClCompile Include="libsidplayfp\src\sidtune\SidTuneTools.cpp" />
+    <ClCompile Include="libsidplayfp\src\simpleMixer.cpp" />
     <ClCompile Include="libsidplayfp\src\utils\iniParser.cpp" />
     <ClCompile Include="libsidplayfp\src\utils\md5Factory.cpp" />
     <ClCompile Include="libsidplayfp\src\utils\MD5\MD5.cpp" />
