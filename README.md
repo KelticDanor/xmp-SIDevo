@@ -18,6 +18,10 @@ You can also download the latest sidid.cfg file from the SIDId GitHub here: http
 
 
 ### Change Log
+v4.9.2
+- libsidplayfp library updated to 2.16.1
+- sidid.cfg updated to version from 17 August 2026
+
 v4.9.1
 - libsidplayfp library updated to 2.15.0
 	- Due to changes there should'nt be a click anymore so fade-in is now longer enabled by default
